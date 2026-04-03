@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function Login() {
@@ -56,21 +55,6 @@ export function Login() {
                                 <span>Entrar com Google</span>
                             </>
                         )}
-                    </button>
-                    
-                    <div className="relative flex items-center py-2">
-                        <div className="flex-grow border-t border-industrial-border"></div>
-                        <span className="flex-shrink-0 mx-4 text-industrial-text-muted text-xs uppercase font-medium">Oucesso Restrito</span>
-                        <div className="flex-grow border-t border-industrial-border"></div>
-                    </div>
-
-                    <button
-                        onClick={handleGoogleLogin}
-                        disabled={isLoading}
-                        className="w-full flex items-center justify-center gap-2 bg-industrial-accent hover:bg-[#243F05] text-white font-medium py-3 px-4 rounded-xl transition-all shadow-md active:scale-[0.98]"
-                    >
-                        <LogIn size={18} />
-                        <span>Acesso Convidado</span>
                     </button>
                 </div>
 
