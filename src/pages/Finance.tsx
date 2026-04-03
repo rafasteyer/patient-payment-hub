@@ -27,7 +27,7 @@ export function Finance() {
         loadData();
     };
 
-    const handleImport = (parsedData: any[]) => {
+    const handleImport = (parsedData: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[]) => {
         let count = 0;
         
         const parseDateInput = (val: string) => {

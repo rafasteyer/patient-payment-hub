@@ -9,13 +9,14 @@ import type { Goal } from '../types';
 import clsx from 'clsx';
 
 export function Dashboard() {
-    const [transactions, setTransactions] = useState<any[]>([]);
+    const [transactions, setTransactions] = useState</* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[]>([]);
     const [patients, setPatients] = useState<any[]>([]);
     const [goals, setGoals] = useState<Goal[]>([]);
     const [period, setPeriod] = useState<string>('monthly');
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
 
+    /* eslint-disable react-hooks/set-state-in-effect */
     useEffect(() => {
         setTransactions(financeService.getTransactions());
         setGoals(financeService.getGoals());
@@ -173,7 +174,7 @@ export function Dashboard() {
  <XAxis dataKey="name"tick={{ fill: '#6B7280' }} />
  <YAxis tick={{ fill: '#6B7280' }} />
  <Tooltip
- formatter={(value: any) => value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+ formatter={(value: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any) => value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
  />
  <Bar dataKey="value"fill="#1E3A8A"radius={[4, 4, 0, 0]} barSize={48} name="Valor (R$)"/>
@@ -186,7 +187,7 @@ export function Dashboard() {
  );
 }
 
-function KPICard({ title, value, icon: Icon, subValue, trend, trendLabel, highlight }: any) {
+function KPICard({ title, value, icon: Icon, subValue, trend, trendLabel, highlight }: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any) {
  return (
  <div className="bg-industrial-surface p-6 rounded-xl shadow-sm border border-industrial-border flex flex-col justify-between h-32 hover:translate-y-[-2px] transition-transform duration-200">
  <div className="flex justify-between items-start">

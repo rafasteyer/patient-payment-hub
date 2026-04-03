@@ -10,12 +10,6 @@ export function Goals() {
  const [patientGoal, setPatientGoal] = useState('');
  const [message, setMessage] = useState('');
 
- useEffect(() => {
- const data = financeService.getGoals();
- setGoals(data);
- loadGoalForMonth(currentMonth, data);
- }, []);
-
  const loadGoalForMonth = (month: string, data: Goal[]) => {
  const goal = data.find(g => g.month === month);
  if (goal) {
@@ -27,6 +21,13 @@ export function Goals() {
  }
  };
 
+  useEffect(() => {
+ const data = financeService.getGoals();
+ setGoals(data);
+ loadGoalForMonth(currentMonth, data);
+ }, []);
+
+ 
  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
  const month = e.target.value;
  setCurrentMonth(month);

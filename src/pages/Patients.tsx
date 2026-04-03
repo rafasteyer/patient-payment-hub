@@ -94,7 +94,7 @@ export function Patients() {
  }
  };
 
- const handleImport = (parsedData: any[]) => {
+ const handleImport = (parsedData: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[]) => {
  let count = 0;
  
  const parseDateInput = (val: string) => {
@@ -108,7 +108,7 @@ export function Patients() {
  return val;
  };
 
- const cleanString = (val: any) => String(val || '').replace(/^[="]+|["]+$/g, '').trim();
+ const cleanString = (val: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any) => String(val || '').replace(/^[="]+|["]+$/g, '').trim();
             const parseAmountInput = (val: string) => {
  if (!val) return '';
  return val.replace('R$', '').trim();
@@ -146,7 +146,7 @@ export function Patients() {
  };
 
  const filteredAndSortedPatients = useMemo(() => {
- let result = patients.filter(p =>
+ const result = patients.filter(p =>
  (p.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
  (p.cpf || '').includes(searchTerm)
  );

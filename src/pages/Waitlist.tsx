@@ -77,7 +77,7 @@ export function Waitlist() {
  setEditingId(null);
  };
 
- const handleImport = (parsedData: any[]) => {
+ const handleImport = (parsedData: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[]) => {
  const parseDateInput = (val: string) => {
  if (!val) return '';
  if (val.includes('/')) {

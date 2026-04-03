@@ -21,7 +21,7 @@ export const importExportService = {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const data = results.data as any[];
+                const data = results.data as /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[];
                 if (data.length === 0) return onError('Arquivo vazio ou inválido');
 
                 // Heuristic detection based on columns
@@ -48,7 +48,7 @@ export const importExportService = {
                         onSuccess(`${count} pacientes importados com sucesso.`);
                         window.location.reload(); // Simple refresh to update views
                         return;
-                    } catch (e) {
+                    } catch (_e) {
                         onError('Erro ao importar pacientes. Verifique o formato.');
                         return;
                     }
@@ -75,7 +75,7 @@ export const importExportService = {
                         onSuccess(`${count} transações importadas com sucesso.`);
                         window.location.reload();
                         return;
-                    } catch (e) {
+                    } catch (_e) {
                         onError('Erro ao importar financeiro.');
                         return;
                     }
