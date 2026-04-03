@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus, Search, Edit, Trash2, Copy, Check, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Copy, Check, ArrowUpDown, UserX, UserCheck } from 'lucide-react';
 import clsx from 'clsx';
 import { patientService } from '../services/patientService';
 import type { Patient } from '../types';
@@ -66,6 +66,7 @@ export function Patients() {
  const [isModalOpen, setIsModalOpen] = useState(false);
  const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
  const [searchTerm, setSearchTerm] = useState('');
+ const [activeTab, setActiveTab] = useState<'active' | 'inactive'>('active');
  
  const [sortField, setSortField] = useState<SortField>('name');
  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -121,7 +122,7 @@ export function Patients() {
  birthDate: parseDateInput(row.birthDate || row.Data_Nascimento || row['Data de Nascimento'] || ''),
  status: (row.status || row.Status_Atendimento || 'active').toLowerCase() as any,
  amount: parseAmountInput(row.amount || row.Valor || row.VALOR || ''),
- cardNumber: cleanString(row.cardNumber || row.Carteirinha || row.CARTEIRINHA),
+ cardNumber: cleanString(row.cardNumber || row.Carteirinha || row.CARTEIRINHA || row['N DA CARTEIRINHA'] || row['N da Carteirinha'] || row['Nº Carteirinha'] || row['Nº da carteirinha'] || row['Nº Carteira'] || row['N da Carteira']),
  motherName: row.motherName || row.Nome_Mae || row['Nome da Mãe'] || '',
  holder: row.holder || row.Titular || row.TITULAR || '',
  healthPlan: row.healthPlan || row.Plano || row.PLANO || '',
@@ -146,10 +147,13 @@ export function Patients() {
  };
 
  const filteredAndSortedPatients = useMemo(() => {
- const result = patients.filter(p =>
- (p.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
- (p.cpf || '').includes(searchTerm)
- );
+ const result = patients.filter(p => {
+ const isActive = p.status !== 'inactive';
+ if (activeTab === 'active' && !isActive) return false;
+ if (activeTab === 'inactive' && isActive) return false;
+ return (p.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+ (p.cpf || '').includes(searchTerm);
+ });
 
  result.sort((a, b) => {
  let valA: string | number = '';
@@ -176,7 +180,7 @@ export function Patients() {
  });
 
  return result;
- }, [patients, searchTerm, sortField, sortDirection]);
+ }, [patients, searchTerm, sortField, sortDirection, activeTab]);
 
  const formattedExportData = useMemo(() => {
  return patients.map(p => ({
@@ -214,15 +218,30 @@ export function Patients() {
  <CsvTools dataToExport={formattedExportData} exportFilename="pacientes.csv"onImport={handleImport} />
  <button
  onClick={() => { setEditingPatient(null); setIsModalOpen(true); }}
- className="flex items-center gap-2 bg-industrial-accent text-white px-5 py-2.5 rounded-lg hover:bg-[#243F05] transition-all shadow-lg active:scale-95 text-sm font-medium"
+ className="flex items-center gap-2 bg-industrial-accent text-white px-5 py-2.5 rounded-lg hover:bg-industrial-accent-hover transition-all shadow-lg active:scale-95 text-sm font-medium"
  >
  <Plus size={18} />
  Novo Paciente
  </button>
  </div>
  </div>
+ 
+ <div className="flex gap-4 border-b border-industrial-border pb-[-1px]">
+ <button 
+ className={clsx("pb-2 px-2 font-medium transition-colors border-b-2 outline-none", activeTab === 'active' ? "border-industrial-accent text-industrial-accent" : "border-transparent text-industrial-text-muted hover:text-industrial-text")}
+ onClick={() => setActiveTab('active')}
+ >
+ Ativos
+ </button>
+ <button 
+ className={clsx("pb-2 px-2 font-medium transition-colors border-b-2 outline-none", activeTab === 'inactive' ? "border-industrial-accent text-industrial-accent" : "border-transparent text-industrial-text-muted hover:text-industrial-text")}
+ onClick={() => setActiveTab('inactive')}
+ >
+ Inativos (Não vem mais)
+ </button>
+ </div>
 
- <div className="bg-industrial-surface rounded-xl shadow-sm border border-industrial-border overflow-hidden">
+ <div className="bg-industrial-surface rounded-xl shadow-sm border border-industrial-border overflow-hidden mt-4">
  {/* Toolbar */}
  <div className="p-4 border-b border-industrial-border flex gap-4">
  <div className="relative flex-1 max-w-md">
@@ -238,7 +257,7 @@ export function Patients() {
  </div>
 
  <div className="w-full">
- <table className="w-full text-left text-[13px] leading-tight">
+ <table className="w-full text-left text-[14px] leading-tight">
  <thead>
  <tr className="border-b border-industrial-border text-industrial-text-muted bg-industrial-bg">
  <th className="px-2 py-3 font-semibold w-[8%]"><SortHeader field="amount"label="Valor"/></th>
@@ -258,7 +277,7 @@ export function Patients() {
  {filteredAndSortedPatients.map((patient) => {
  const age = calculateAge(patient.birthDate);
  return (
- <tr key={patient.id} className="even:bg-[#365D08]/[0.08] dark:even:bg-[#365D08]/20 odd:bg-industrial-surface hover:bg-[#365D08]/15 dark:hover:bg-[#365D08]/30 transition-colors group">
+ <tr key={patient.id} className="even:bg-industrial-accent/[0.04] dark:even:bg-industrial-accent/15 odd:bg-industrial-surface hover:bg-industrial-accent/10 dark:hover:bg-industrial-accent/20 transition-colors group">
  <td className="px-2 py-2 align-middle">
  {patient.amount ? (
  <span className="whitespace-nowrap font-semibold">R$ {patient.amount} <CopyIcon value={`R$ ${patient.amount}`} /></span>
@@ -297,7 +316,14 @@ export function Patients() {
  {patient.guideExpiration && <CopyIcon value={new Date(patient.guideExpiration).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} />}
  </td>
  <td className="px-2 py-2 align-middle text-center">
- <div className="flex flex-col items-center gap-2">
+ <div className="flex justify-center items-center gap-2">
+ <button onClick={() => {
+ const newStatus = patient.status === 'inactive' ? 'active' : 'inactive';
+ patientService.update(patient.id, { status: newStatus });
+ loadPatients();
+ }} className={clsx("transition-colors", patient.status === 'inactive' ? "text-industrial-accent hover:text-industrial-accent-hover" : "text-industrial-text-muted hover:text-amber-600")} title={patient.status === 'inactive' ? 'Reativar Paciente' : 'Inativar (Não vem mais)'}>
+ {patient.status === 'inactive' ? <UserCheck size={16} /> : <UserX size={16} />}
+ </button>
  <button onClick={() => { setEditingPatient(patient); setIsModalOpen(true); }} className="text-industrial-text-muted hover:text-industrial-accent transition-colors"title="Editar">
  <Edit size={16} />
  </button>

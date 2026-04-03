@@ -6,15 +6,34 @@ interface TransactionFormProps {
  isOpen: boolean;
  onClose: () => void;
  onSave: (transaction: Omit<Transaction, 'id' | 'createdAt'>) => void;
+ initialData?: Transaction | null;
 }
 
-export function TransactionForm({ isOpen, onClose, onSave }: TransactionFormProps) {
+export function TransactionForm({ isOpen, onClose, onSave, initialData }: TransactionFormProps) {
  const [description, setDescription] = useState('');
  const [amount, setAmount] = useState('');
  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
  const [category, setCategory] = useState<TransactionType>('income');
  const [professional, setProfessional] = useState('');
  const [paymentMethod, setPaymentMethod] = useState('Pix');
+
+ React.useEffect(() => {
+ if (initialData) {
+ setDescription(initialData.description);
+ setAmount(String(Math.abs(initialData.amount)));
+ setDate(initialData.date);
+ setCategory(initialData.category);
+ setProfessional(initialData.professional);
+ setPaymentMethod(initialData.paymentMethod);
+ } else {
+ setDescription('');
+ setAmount('');
+ setDate(new Date().toISOString().split('T')[0]);
+ setCategory('income');
+ setProfessional('');
+ setPaymentMethod('Pix');
+ }
+ }, [initialData, isOpen]);
 
  if (!isOpen) return null;
 
@@ -38,7 +57,9 @@ export function TransactionForm({ isOpen, onClose, onSave }: TransactionFormProp
  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
  <div className="bg-industrial-surface rounded-xl shadow-xl w-full max-w-md animate-in zoom-in-95 duration-200">
  <div className="flex items-center justify-between p-6 border-b border-industrial-border">
- <h2 className="text-xl font-bold text-industrial-accent">Nova Transação</h2>
+ <h2 className="text-xl font-bold text-industrial-accent">
+ {initialData ? 'Editar Transação' : 'Nova Transação'}
+ </h2>
  <button onClick={onClose} className="text-industrial-text-muted hover:text-gray-600">
  <X size={24} />
  </button>
@@ -127,7 +148,7 @@ export function TransactionForm({ isOpen, onClose, onSave }: TransactionFormProp
  </button>
  <button
  type="submit"
- className="px-6 py-2 bg-industrial-accent text-white rounded-lg hover:bg-[#243F05] transition-colors shadow-lg shadow-[#243F05]/30 font-medium"
+ className="px-6 py-2 bg-industrial-accent text-white rounded-lg hover:bg-industrial-accent-hover transition-colors shadow-lg font-medium"
  >
  Salvar
  </button>

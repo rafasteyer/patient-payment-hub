@@ -26,6 +26,20 @@ export const financeService = {
         return newTx;
     },
 
+    deleteTransaction: (id: string): void => {
+        const transactions = financeService.getTransactions().filter(t => t.id !== id);
+        storage.set(TRANSACTIONS_KEY, transactions);
+    },
+
+    updateTransaction: (id: string, updatedData: Partial<Transaction>): void => {
+        const transactions = financeService.getTransactions();
+        const index = transactions.findIndex(t => t.id === id);
+        if (index >= 0) {
+            transactions[index] = { ...transactions[index], ...updatedData };
+            storage.set(TRANSACTIONS_KEY, transactions);
+        }
+    },
+
     getGoals: (): Goal[] => {
         const data = storage.get<Goal[]>(GOALS_KEY);
         if (!data) {

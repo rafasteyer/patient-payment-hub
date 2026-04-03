@@ -40,7 +40,7 @@ export function PatientForm({ isOpen, onClose, onSave, initialData }: PatientFor
  onClose();
  };
 
- const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+ const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
  const { name, value } = e.target;
  setFormData(prev => ({ ...prev, [name]: value }));
  };
@@ -94,6 +94,13 @@ export function PatientForm({ isOpen, onClose, onSave, initialData }: PatientFor
  <div>
  <label className="block text-sm font-medium text-industrial-text mb-1">Vencimento da Guia</label>
  <input type="date"name="guideExpiration"value={formData.guideExpiration || ''} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-industrial-border focus:ring-2 focus:ring-industrial-accent focus:border-transparent outline-none"/>
+ </div>
+ <div>
+ <label className="block text-sm font-medium text-industrial-text mb-1">Status</label>
+ <select name="status"value={formData.status || 'active'} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-industrial-border focus:ring-2 focus:ring-industrial-accent focus:border-transparent outline-none">
+ <option value="active">Ativo</option>
+ <option value="inactive">Inativo (Não vem mais)</option>
+ </select>
  </div>
  </div>
 

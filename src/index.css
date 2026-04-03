@@ -5,8 +5,8 @@
 @theme {
   --color-industrial-bg: #F8F9FA;
   --color-industrial-surface: #FFFFFF;
-  --color-industrial-accent: #365D08;
-  --color-industrial-accent-hover: #243F05;
+  --color-industrial-accent: #16a34a;
+  --color-industrial-accent-hover: #15803d;
   --color-industrial-text: #1F2937;
   --color-industrial-text-muted: #6B7280;
   --color-industrial-border: #E5E7EB;
@@ -33,8 +33,8 @@ body {
   --color-industrial-border: #27272a;
   
   /* Fix our custom green alpha states */
-  --color-industrial-accent: #5e8f23; /* Brighter version of #365D08 for dark mode visibility */
-  --color-industrial-accent-hover: #7baf3b;
+  --color-industrial-accent: #4ade80; /* Much brighter version for dark mode readability */
+  --color-industrial-accent-hover: #22c55e;
 
   color-scheme: dark;
 }

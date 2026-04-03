@@ -150,7 +150,7 @@ export function Waitlist() {
  <div className="w-full overflow-hidden">
  <table className="w-full text-left text-sm">
  <thead>
- <tr className="bg-industrial-bg text-industrial-text-muted font-medium text-[13px]">
+ <tr className="bg-industrial-bg text-industrial-text-muted font-medium text-[14px]">
  <th className="px-4 py-3">Data Cadastro</th>
  <th className="px-4 py-3">Final Tel.</th>
  <th className="px-4 py-3">Idade</th>
@@ -160,9 +160,9 @@ export function Waitlist() {
  <th className="px-4 py-3 text-center">Ações</th>
  </tr>
  </thead>
- <tbody className="divide-y divide-industrial-border text-[13px]">
+ <tbody className="divide-y divide-industrial-border text-[14px]">
  {list.filter(item => activeTab === 'iniciados' ? item.serviceStarted : !item.serviceStarted).map((item) => (
- <tr key={item.id} className="even:bg-[#365D08]/[0.08] dark:even:bg-[#365D08]/20 odd:bg-industrial-surface hover:bg-[#365D08]/15 dark:hover:bg-[#365D08]/30 transition-colors group">
+ <tr key={item.id} className="even:bg-industrial-accent/[0.04] dark:even:bg-industrial-accent/15 odd:bg-industrial-surface hover:bg-industrial-accent/10 dark:hover:bg-industrial-accent/20 transition-colors group">
  <td className="px-4 py-3 text-industrial-text-muted whitespace-nowrap">
  {new Date(item.registrationDate).toLocaleDateString('pt-BR')}
  </td>
@@ -182,7 +182,7 @@ export function Waitlist() {
  <button 
  onClick={() => toggleServiceStarted(item.id)}
  className={clsx(
-"px-2 py-1 text-[11px] font-semibold rounded-md border transition-all",
+"px-2 py-1 text-[12px] font-semibold rounded-md border transition-all",
  item.serviceStarted 
  ?"bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
  :"bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100"

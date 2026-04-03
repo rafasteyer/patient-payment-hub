@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, ArrowUpRight, ArrowDownRight, Wallet } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownRight, Wallet, Edit, Trash2 } from 'lucide-react';
 import { financeService } from '../services/financeService';
 import type { Transaction } from '../types';
 import { TransactionForm } from '../components/TransactionForm';
@@ -9,6 +9,7 @@ import clsx from 'clsx';
 export function Finance() {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
     const [activeTab, setActiveTab] = useState<'fluxo' | 'dre'>('fluxo');
     const [period, setPeriod] = useState<string>('all');
     const [customStart, setCustomStart] = useState('');
@@ -23,8 +24,21 @@ export function Finance() {
     }, []);
 
     const handleSave = (data: Omit<Transaction, 'id' | 'createdAt'>) => {
-        financeService.addTransaction(data);
+        const cleanData = { ...data, amount: Math.abs(data.amount) };
+        if (editingTransaction) {
+            financeService.updateTransaction(editingTransaction.id, cleanData);
+        } else {
+            financeService.addTransaction(cleanData);
+        }
         loadData();
+        setEditingTransaction(null);
+    };
+
+    const handleDelete = (id: string) => {
+        if (confirm("Tem certeza que deseja excluir esta transação?")) {
+            financeService.deleteTransaction(id);
+            loadData();
+        }
     };
 
     const handleImport = (parsedData: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[]) => {
@@ -51,7 +65,7 @@ export function Finance() {
                 date: parseDateInput(row.date || row.Data || row.DATA || '') || new Date().toISOString().split('T')[0],
                 description: row.description || row.Descricao || row['Descrição'] || '',
                 category: (row.category === 'income' || row.category === 'expense') ? row.category : (row.Categoria === 'Receita' || row.Categoria === 'ENTRADA' ? 'income' : 'expense'),
-                amount: row.amount ? parseFloat(row.amount) : parseAmountInput(row.Valor || row.VALOR || '0'),
+                amount: Math.abs(row.amount ? parseFloat(row.amount) : parseAmountInput(row.Valor || row.VALOR || '0')),
                 professional: row.professional || row.Profissional_Responsavel || row.Profissional || '',
                 paymentMethod: row.paymentMethod || row.MetodoPagamento || row['Método de Pagamento'] || 'Dinheiro'
             };
@@ -94,8 +108,9 @@ export function Finance() {
     const filteredTransactions = transactions.filter(tx => isDateInPeriod(tx.date));
     
     const filteredSummary = filteredTransactions.reduce((acc, tx) => {
-        if(tx.category === 'income') acc.revenue += tx.amount;
-        else acc.expenses += tx.amount;
+        const val = Math.abs(tx.amount);
+        if(tx.category === 'income') acc.revenue += val;
+        else acc.expenses += val;
         acc.netProfit = acc.revenue - acc.expenses;
         return acc;
     }, { revenue: 0, expenses: 0, netProfit: 0 });
@@ -138,7 +153,7 @@ export function Finance() {
     </div>
     <CsvTools dataToExport={formattedExportData} exportFilename="financeiro.csv" onImport={handleImport} />
     <button
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => { setEditingTransaction(null); setIsModalOpen(true); }}
         className="flex items-center gap-2 bg-industrial-accent text-white px-5 py-2.5 rounded-lg hover:bg-industrial-accent-hover transition-all shadow-lg active:scale-95 text-sm font-medium"
     >
         <Plus size={18} />
@@ -182,7 +197,7 @@ export function Finance() {
                         <div>
                             <p className="text-sm text-industrial-text-muted font-medium">Despesas</p>
                             <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-                                {filteredSummary.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                                - {filteredSummary.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </p>
                         </div>
                         <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
@@ -197,7 +212,7 @@ export function Finance() {
                                 {filteredSummary.netProfit.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                             </p>
                         </div>
-                        <div className="p-3 bg-[#365D08]/10 dark:bg-[#365D08]/20 rounded-xl text-industrial-accent group-hover:scale-110 transition-transform">
+                        <div className="p-3 bg-industrial-accent/10 dark:bg-industrial-accent/20 rounded-xl text-industrial-accent group-hover:scale-110 transition-transform">
                             <Wallet size={28} strokeWidth={2.5} />
                         </div>
                     </div>
@@ -208,43 +223,54 @@ export function Finance() {
  <div className="w-full overflow-hidden">
  <table className="w-full text-left text-sm">
  <thead>
- <tr className="bg-industrial-bg text-industrial-text-muted font-medium border-b border-industrial-border text-[13px]">
+ <tr className="bg-industrial-bg text-industrial-text-muted font-medium border-b border-industrial-border text-[14px]">
  <th className="px-4 py-3">Data</th>
  <th className="px-4 py-3">Descrição</th>
  <th className="px-4 py-3">Categoria</th>
  <th className="px-4 py-3 text-right">Valor</th>
  <th className="px-4 py-3">Método Pag.</th>
+ <th className="px-4 py-3 text-center w-[10%]">Ações</th>
  </tr>
  </thead>
- <tbody className="divide-y divide-industrial-border text-[13px]">
+ <tbody className="divide-y divide-industrial-border text-[14px]">
  {filteredTransactions.sort((a, b) => b.date.localeCompare(a.date)).map((tx) => (
- <tr key={tx.id} className="even:bg-[#365D08]/[0.08] dark:even:bg-[#365D08]/20 odd:bg-industrial-surface hover:bg-[#365D08]/15 dark:hover:bg-[#365D08]/30 transition-colors group">
+ <tr key={tx.id} className="even:bg-industrial-accent/[0.04] dark:even:bg-industrial-accent/15 odd:bg-industrial-surface hover:bg-industrial-accent/10 dark:hover:bg-industrial-accent/30 transition-colors group">
  <td className="px-4 py-3 text-industrial-text-muted whitespace-nowrap">
  {new Date(tx.date).toLocaleDateString('pt-BR')}
  </td>
  <td className="px-4 py-3 font-medium text-industrial-text break-words">{tx.description}</td>
  <td className="px-4 py-3">
  <span className={clsx(
-"inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium",
+"inline-flex items-center px-2 py-0.5 rounded-full text-[12px] font-medium",
  tx.category === 'income'
- ?"bg-green-100 text-green-800"
- :"bg-red-100 text-red-800"
+ ?"bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+ :"bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
  )}>
  {tx.category === 'income' ? 'Entrada' : 'Saída'}
  </span>
  </td>
  <td className={clsx("px-4 py-3 text-right font-medium whitespace-nowrap", tx.category === 'income' ? 'text-green-600' : 'text-red-600')}>
- {tx.category === 'income' ? '+' : '-'}{tx.amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+ {tx.category === 'income' ? '+' : '-'}{Math.abs(tx.amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
  </td>
  <td className="px-4 py-3 break-words">
  {tx.paymentMethod || '---'}
+ </td>
+ <td className="px-4 py-3 text-center whitespace-nowrap">
+ <div className="flex justify-center items-center gap-2">
+ <button onClick={() => { setEditingTransaction(tx); setIsModalOpen(true); }} className="text-industrial-text-muted hover:text-industrial-accent transition-colors"title="Editar">
+ <Edit size={16} />
+ </button>
+ <button onClick={() => handleDelete(tx.id)} className="text-industrial-text-muted hover:text-red-600 transition-colors"title="Excluir">
+ <Trash2 size={16} />
+ </button>
+ </div>
  </td>
  </tr>
  ))}
 
  {filteredTransactions.length === 0 && (
  <tr>
- <td colSpan={5} className="px-6 py-12 text-center text-industrial-text-muted">
+ <td colSpan={6} className="px-6 py-12 text-center text-industrial-text-muted">
  Nenhuma transação registrada.
  </td>
  </tr>
@@ -273,7 +299,7 @@ export function Finance() {
  </div>
  <div className="flex justify-between items-center py-2">
  <span className="text-industrial-text-muted">(-) Despesas Operacionais</span>
- <span className="font-semibold text-red-600">{filteredSummary.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+ <span className="font-semibold text-red-600">- {filteredSummary.expenses.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
  </div>
  <div className="flex justify-between items-center py-2 text-sm text-industrial-text-muted pl-4 border-l-2 border-industrial-border">
  <span>Despesas Operacionais/Administrativas</span>
@@ -293,6 +319,7 @@ export function Finance() {
  isOpen={isModalOpen}
  onClose={() => setIsModalOpen(false)}
  onSave={handleSave}
+ initialData={editingTransaction}
  />
  </div>
  );

@@ -114,15 +114,15 @@ export function Tasks() {
  <div className="bg-industrial-surface rounded-xl shadow-sm border border-industrial-border overflow-hidden w-full">
  <table className="w-full text-left text-sm">
  <thead>
- <tr className="bg-industrial-bg text-industrial-text-muted font-medium border-b border-industrial-border text-[13px]">
+ <tr className="bg-industrial-bg text-industrial-text-muted font-medium border-b border-industrial-border text-[14px]">
  <th className="px-4 py-3 w-[10%] text-center">Status</th>
  <th className="px-4 py-3 w-[20%]">Data</th>
  <th className="px-4 py-3 w-[70%]">Descrição</th>
  </tr>
  </thead>
- <tbody className="divide-y divide-industrial-border text-[13px]">
+ <tbody className="divide-y divide-industrial-border text-[14px]">
  {activeTasks.map((task) => (
- <tr key={task.id} className="even:bg-[#365D08]/[0.08] dark:even:bg-[#365D08]/20 odd:bg-industrial-surface hover:bg-[#365D08]/15 dark:hover:bg-[#365D08]/30 transition-colors group">
+ <tr key={task.id} className="even:bg-industrial-accent/[0.04] dark:even:bg-industrial-accent/15 odd:bg-industrial-surface hover:bg-industrial-accent/10 dark:hover:bg-industrial-accent/20 transition-colors group">
  <td className="px-4 py-3 text-center align-middle">
  <button onClick={() => toggleStatus(task.id)} className="text-industrial-text-muted hover:text-industrial-accent transition-colors">
  {task.status === 'completed' ? <CheckCircle2 className="text-green-500"/> : <Circle className="text-gray-300"/>}
