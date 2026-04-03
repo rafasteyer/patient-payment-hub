@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-industrial-bg: #F8F9FA;
+  --color-industrial-surface: #FFFFFF;
+  --color-industrial-accent: #365D08;
+  --color-industrial-accent-hover: #243F05;
+  --color-industrial-text: #1F2937;
+  --color-industrial-text-muted: #6B7280;
+  --color-industrial-border: #E5E7EB;
+  
+  --font-sans: "Helvetica", Arial, sans-serif;
+}
+
+:root {
+  background-color: var(--color-industrial-bg);
+  color: var(--color-industrial-text);
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.dark {
+  --color-industrial-bg: #09090b; /* Very dark background (zinc-950) */
+  --color-industrial-surface: #18181b; /* Card backgrounds (zinc-900) */
+  --color-industrial-text: #fafafa;
+  --color-industrial-text-muted: #a1a1aa;
+  --color-industrial-border: #27272a;
+  
+  /* Fix our custom green alpha states */
+  --color-industrial-accent: #5e8f23; /* Brighter version of #365D08 for dark mode visibility */
+  --color-industrial-accent-hover: #7baf3b;
+
+  color-scheme: dark;
+}
