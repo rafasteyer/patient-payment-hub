@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { Users, Clock, CheckSquare, DollarSign, LayoutDashboard, Moon, Sun } from 'lucide-react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { Users, Clock, CheckSquare, DollarSign, LayoutDashboard, Moon, Sun, LogOut } from 'lucide-react';
 import clsx from 'clsx';
 
 const NAV_ITEMS = [
@@ -12,7 +12,8 @@ const NAV_ITEMS = [
 ];
 
 export function NavigationTabs() {
- const [isDark, setIsDark] = useState(false);
+    const navigate = useNavigate();
+    const [isDark, setIsDark] = useState(false);
 
  useEffect(() => {
  const root = document.documentElement;
@@ -67,17 +68,28 @@ export function NavigationTabs() {
  </div>
  </div>
  
- {/* Dark Mode Toggle */}
- <div className="flex items-center ml-auto">
- <button
- onClick={toggleTheme}
- className="p-2 rounded-lg text-industrial-text-muted hover:text-industrial-accent hover:bg-gray-100 :bg-gray-800 transition-colors focus:outline-none"
- aria-label="Alternar tema"
- >
- {isDark ? <Sun className="w-5 h-5 text-amber-500"/> : <Moon className="w-5 h-5"/>}
- </button>
- </div>
- </div>
+                    {/* Dark Mode Toggle */}
+                    <div className="flex items-center ml-auto gap-2">
+                        <button
+                            onClick={toggleTheme}
+                            className="p-2 rounded-lg text-industrial-text-muted hover:text-industrial-accent hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none"
+                            title="Alternar tema"
+                        >
+                            {isDark ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5" />}
+                        </button>
+                        <div className="w-px h-6 bg-industrial-border mx-1"></div>
+                        <button
+                            onClick={() => {
+                                localStorage.removeItem('isAuthenticated');
+                                navigate('/login', { replace: true });
+                            }}
+                            className="p-2 flex items-center gap-2 rounded-lg text-industrial-text-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none"
+                            title="Sair do Sistema"
+                        >
+                            <LogOut className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
  </div>
  </nav>
  );
