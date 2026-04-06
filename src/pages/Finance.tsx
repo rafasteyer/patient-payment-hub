@@ -15,35 +15,47 @@ export function Finance() {
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
 
-    const loadData = () => {
-        setTransactions(financeService.getTransactions());
+    const loadData = async () => {
+        try {
+            const data = await financeService.getTransactions();
+            setTransactions(data);
+        } catch (err) {
+            console.error('Erro ao carregar transações:', err);
+        }
     };
 
     useEffect(() => {
         loadData();
     }, []);
 
-    const handleSave = (data: Omit<Transaction, 'id' | 'createdAt'>) => {
+    const handleSave = async (data: Omit<Transaction, 'id' | 'createdAt'>) => {
         const cleanData = { ...data, amount: Math.abs(data.amount) };
-        if (editingTransaction) {
-            financeService.updateTransaction(editingTransaction.id, cleanData);
-        } else {
-            financeService.addTransaction(cleanData);
-        }
-        loadData();
-        setEditingTransaction(null);
-    };
-
-    const handleDelete = (id: string) => {
-        if (confirm("Tem certeza que deseja excluir esta transação?")) {
-            financeService.deleteTransaction(id);
-            loadData();
+        try {
+            if (editingTransaction) {
+                await financeService.updateTransaction(editingTransaction.id, cleanData);
+            } else {
+                await financeService.addTransaction(cleanData);
+            }
+            await loadData();
+            setEditingTransaction(null);
+        } catch (err) {
+            console.error('Erro ao salvar transação:', err);
+            alert('Erro ao salvar. Tente novamente.');
         }
     };
 
-    const handleImport = (parsedData: /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[]) => {
-        let count = 0;
-        
+    const handleDelete = async (id: string) => {
+        if (!confirm("Tem certeza que deseja excluir esta transação?")) return;
+        try {
+            await financeService.deleteTransaction(id);
+            await loadData();
+        } catch (err) {
+            console.error('Erro ao excluir transação:', err);
+        }
+    };
+
+    const handleImport = async (parsedData: unknown[]) => {
+        const rows = parsedData as Record<string, string>[];
         const parseDateInput = (val: string) => {
             if (!val) return '';
             if (val.includes('/')) {
@@ -54,27 +66,30 @@ export function Finance() {
             }
             return val;
         };
-
         const parseAmountInput = (val: string) => {
             if (!val) return 0;
             return parseFloat(val.replace('R$', '').replace('.', '').replace(',', '.').trim()) || 0;
         };
-        
-        parsedData.forEach(row => {
+        let count = 0;
+        for (const row of rows) {
             const tx: Omit<Transaction, 'id' | 'createdAt'> = {
                 date: parseDateInput(row.date || row.Data || row.DATA || '') || new Date().toISOString().split('T')[0],
                 description: row.description || row.Descricao || row['Descrição'] || '',
-                category: (row.category === 'income' || row.category === 'expense') ? row.category : (row.Categoria === 'Receita' || row.Categoria === 'ENTRADA' ? 'income' : 'expense'),
+                category: (row.category === 'income' || row.category === 'expense') ? row.category as 'income' | 'expense' : (row.Categoria === 'Receita' || row.Categoria === 'ENTRADA' ? 'income' : 'expense'),
                 amount: Math.abs(row.amount ? parseFloat(row.amount) : parseAmountInput(row.Valor || row.VALOR || '0')),
                 professional: row.professional || row.Profissional_Responsavel || row.Profissional || '',
                 paymentMethod: row.paymentMethod || row.MetodoPagamento || row['Método de Pagamento'] || 'Dinheiro'
             };
             if (tx.description && tx.amount) {
-                financeService.addTransaction(tx);
-                count++;
+                try {
+                    await financeService.addTransaction(tx);
+                    count++;
+                } catch (err) {
+                    console.error('Erro ao importar transação:', err);
+                }
             }
-        });
-        loadData();
+        }
+        await loadData();
         if (count > 0) alert(`${count} transações importadas com sucesso.`);
     };
 

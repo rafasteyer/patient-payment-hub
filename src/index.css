@@ -3,38 +3,193 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-industrial-bg: #F8F9FA;
-  --color-industrial-surface: #FFFFFF;
-  --color-industrial-accent: #16a34a;
-  --color-industrial-accent-hover: #15803d;
-  --color-industrial-text: #1F2937;
-  --color-industrial-text-muted: #6B7280;
-  --color-industrial-border: #E5E7EB;
-  
-  --font-sans: "Helvetica", Arial, sans-serif;
+  /* ── Brand colours ── */
+  --color-brand:          #16a34a;
+  --color-brand-hover:    #15803d;
+  --color-brand-light:    #dcfce7;
+  --color-brand-dark:     #4ade80;
+
+  /* ── Surface (light mode) ── */
+  --color-bg:             #F2F4F7;
+  --color-surface:        #FFFFFF;
+  --color-surface-hover:  #F8FAFB;
+  --color-border:         #E8ECF0;
+  --color-text:           #1A1D23;
+  --color-text-muted:     #6E7C8C;
+
+  /* ── Sidebar ── */
+  --color-sidebar-bg:     #FFFFFF;
+  --color-sidebar-border: #E8ECF0;
+  --color-sidebar-icon:   #9AAAB8;
+  --color-sidebar-active: #16a34a;
+
+  /* ── Aliases for backward compat ── */
+  --color-industrial-bg:            var(--color-bg);
+  --color-industrial-surface:       var(--color-surface);
+  --color-industrial-accent:        var(--color-brand);
+  --color-industrial-accent-hover:  var(--color-brand-hover);
+  --color-industrial-text:          var(--color-text);
+  --color-industrial-text-muted:    var(--color-text-muted);
+  --color-industrial-border:        var(--color-border);
+
+  --font-sans: "Inter", "Helvetica Neue", Arial, sans-serif;
 }
 
-:root {
-  background-color: var(--color-industrial-bg);
-  color: var(--color-industrial-text);
-  font-family: var(--font-sans);
+/* ── Dark mode overrides ── */
+.dark {
+  --color-bg:             #0F1117;
+  --color-surface:        #1A1D23;
+  --color-surface-hover:  #21252E;
+  --color-border:         #2A2F3B;
+  --color-text:           #F0F2F5;
+  --color-text-muted:     #7A8799;
+
+  --color-sidebar-bg:     #1A1D23;
+  --color-sidebar-border: #2A2F3B;
+  --color-sidebar-icon:   #5A6878;
+  --color-sidebar-active: #4ade80;
+
+  --color-brand:          #4ade80;
+  --color-brand-hover:    #22c55e;
+  --color-brand-light:    rgba(74, 222, 128, 0.12);
+
+  --color-industrial-bg:            var(--color-bg);
+  --color-industrial-surface:       var(--color-surface);
+  --color-industrial-accent:        var(--color-brand);
+  --color-industrial-accent-hover:  var(--color-brand-hover);
+  --color-industrial-text:          var(--color-text);
+  --color-industrial-text-muted:    var(--color-text-muted);
+  --color-industrial-border:        var(--color-border);
+
+  color-scheme: dark;
+}
+
+/* ── Globals ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
 }
 
 body {
-  margin: 0;
-  min-height: 100vh;
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.dark {
-  --color-industrial-bg: #09090b; /* Very dark background (zinc-950) */
-  --color-industrial-surface: #18181b; /* Card backgrounds (zinc-900) */
-  --color-industrial-text: #fafafa;
-  --color-industrial-text-muted: #a1a1aa;
-  --color-industrial-border: #27272a;
-  
-  /* Fix our custom green alpha states */
-  --color-industrial-accent: #4ade80; /* Much brighter version for dark mode readability */
-  --color-industrial-accent-hover: #22c55e;
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-text-muted); }
 
-  color-scheme: dark;
+/* ── Card base ── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 1px 2px rgba(0,0,0,.03);
+}
+
+/* ── Sidebar layout shell ── */
+.app-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-sidebar {
+  width: 68px;
+  flex-shrink: 0;
+  background: var(--color-sidebar-bg);
+  border-right: 1px solid var(--color-sidebar-border);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 0;
+  gap: 6px;
+  transition: background 0.2s, border-color 0.2s;
+  z-index: 50;
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.app-topbar {
+  height: 64px;
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.app-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px;
+  background: var(--color-bg);
+}
+
+/* ── Sidebar icon buttons ── */
+.sidebar-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-sidebar-icon);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  border: none;
+  background: transparent;
+  position: relative;
+}
+.sidebar-btn:hover {
+  background: var(--color-brand-light);
+  color: var(--color-brand);
+}
+.sidebar-btn.active {
+  background: var(--color-brand-light);
+  color: var(--color-brand);
+}
+.dark .sidebar-btn.active {
+  background: rgba(74, 222, 128, 0.12);
+}
+
+/* ── Top nav links ── */
+.topnav-link {
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.topnav-link:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.topnav-link.active {
+  background: var(--color-brand);
+  color: #fff;
 }

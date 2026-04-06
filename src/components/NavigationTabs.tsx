@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Users, Clock, CheckSquare, DollarSign, LayoutDashboard, Moon, Sun, LogOut } from 'lucide-react';
 import clsx from 'clsx';
+import { useAuth } from '../contexts/AuthContext';
 
 const NAV_ITEMS = [
  { icon: Users, label: 'Pacientes', path: '/pacientes' },
@@ -13,6 +14,7 @@ const NAV_ITEMS = [
 
 export function NavigationTabs() {
     const navigate = useNavigate();
+    const { signOut, user } = useAuth();
     const [isDark, setIsDark] = useState(false);
 
  useEffect(() => {
@@ -79,12 +81,12 @@ export function NavigationTabs() {
                         </button>
                         <div className="w-px h-6 bg-industrial-border mx-1"></div>
                         <button
-                            onClick={() => {
-                                localStorage.removeItem('isAuthenticated');
+                            onClick={async () => {
+                                await signOut();
                                 navigate('/login', { replace: true });
                             }}
                             className="p-2 flex items-center gap-2 rounded-lg text-industrial-text-muted hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors focus:outline-none"
-                            title="Sair do Sistema"
+                            title={`Sair (${user?.email || ''})`}
                         >
                             <LogOut className="w-5 h-5" />
                         </button>

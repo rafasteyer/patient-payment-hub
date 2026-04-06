@@ -1,79 +1,136 @@
+import { supabase } from '../lib/supabase';
 import type { Transaction, Goal } from '../types';
-import { storage } from './storage';
-import { MOCK_TRANSACTIONS, MOCK_GOALS } from './mockData';
 
-const TRANSACTIONS_KEY = 'transactions';
-const GOALS_KEY = 'goals';
+async function getCurrentUserId(): Promise<string> {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error('Usuário não autenticado');
+  return user.id;
+}
+
+function rowToTransaction(row: Record<string, unknown>): Transaction {
+  return {
+    id: row.id as string,
+    date: row.date as string,
+    description: row.description as string,
+    category: row.category as 'income' | 'expense',
+    amount: Number(row.amount),
+    professional: row.professional as string,
+    paymentMethod: row.payment_method as string,
+    createdAt: row.created_at as string,
+  };
+}
+
+function rowToGoal(row: Record<string, unknown>): Goal {
+  return {
+    id: row.id as string,
+    month: row.month as string,
+    revenueGoal: Number(row.revenue_goal),
+    newPatientsGoal: Number(row.new_patients_goal),
+  };
+}
 
 export const financeService = {
-    getTransactions: (): Transaction[] => {
-        const data = storage.get<Transaction[]>(TRANSACTIONS_KEY);
-        if (!data) {
-            storage.set(TRANSACTIONS_KEY, MOCK_TRANSACTIONS);
-            return MOCK_TRANSACTIONS;
-        }
-        return data;
-    },
+  getTransactions: async (): Promise<Transaction[]> => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: false });
 
-    addTransaction: (transaction: Omit<Transaction, 'id' | 'createdAt'>): Transaction => {
-        const transactions = financeService.getTransactions();
-        const newTx: Transaction = {
-            ...transaction,
-            id: crypto.randomUUID(),
-            createdAt: new Date().toISOString(),
-        };
-        storage.set(TRANSACTIONS_KEY, [...transactions, newTx]);
-        return newTx;
-    },
+    if (error) throw error;
+    return (data ?? []).map(rowToTransaction);
+  },
 
-    deleteTransaction: (id: string): void => {
-        const transactions = financeService.getTransactions().filter(t => t.id !== id);
-        storage.set(TRANSACTIONS_KEY, transactions);
-    },
+  addTransaction: async (tx: Omit<Transaction, 'id' | 'createdAt'>): Promise<Transaction> => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase
+      .from('transactions')
+      .insert({
+        user_id: userId,
+        date: tx.date,
+        description: tx.description,
+        category: tx.category,
+        amount: tx.amount,
+        professional: tx.professional,
+        payment_method: tx.paymentMethod,
+      })
+      .select()
+      .single();
 
-    updateTransaction: (id: string, updatedData: Partial<Transaction>): void => {
-        const transactions = financeService.getTransactions();
-        const index = transactions.findIndex(t => t.id === id);
-        if (index >= 0) {
-            transactions[index] = { ...transactions[index], ...updatedData };
-            storage.set(TRANSACTIONS_KEY, transactions);
-        }
-    },
+    if (error) throw error;
+    return rowToTransaction(data);
+  },
 
-    getGoals: (): Goal[] => {
-        const data = storage.get<Goal[]>(GOALS_KEY);
-        if (!data) {
-            storage.set(GOALS_KEY, MOCK_GOALS);
-            return MOCK_GOALS;
-        }
-        return data;
-    },
+  deleteTransaction: async (id: string): Promise<void> => {
+    const userId = await getCurrentUserId();
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', userId);
 
-    updateGoal: (goal: Goal): void => {
-        const goals = financeService.getGoals();
-        const index = goals.findIndex(g => g.month === goal.month);
-        if (index >= 0) {
-            goals[index] = goal;
-        } else {
-            goals.push(goal);
-        }
-        storage.set(GOALS_KEY, goals);
-    },
+    if (error) throw error;
+  },
 
-    // KPI Calculations
-    getFinancialSummary: () => {
-        const transactions = financeService.getTransactions();
-        const income = transactions
-            .filter(t => t.category === 'income')
-            .reduce((acc, t) => acc + t.amount, 0);
-        const expense = transactions
-            .filter(t => t.category === 'expense')
-            .reduce((acc, t) => acc + t.amount, 0);
+  updateTransaction: async (id: string, updates: Partial<Transaction>): Promise<void> => {
+    const userId = await getCurrentUserId();
+    const row: Record<string, unknown> = {};
+    if (updates.date !== undefined) row.date = updates.date;
+    if (updates.description !== undefined) row.description = updates.description;
+    if (updates.category !== undefined) row.category = updates.category;
+    if (updates.amount !== undefined) row.amount = updates.amount;
+    if (updates.professional !== undefined) row.professional = updates.professional;
+    if (updates.paymentMethod !== undefined) row.payment_method = updates.paymentMethod;
 
-        return {
-            revenue: income,
-            expenses: expense,
-            netProfit: income - expense
-        };
-    }
+    const { error } = await supabase
+      .from('transactions')
+      .update(row)
+      .eq('id', id)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+  },
+
+  getGoals: async (): Promise<Goal[]> => {
+    const userId = await getCurrentUserId();
+    const { data, error } = await supabase
+      .from('goals')
+      .select('*')
+      .eq('user_id', userId)
+      .order('month', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map(rowToGoal);
+  },
+
+  updateGoal: async (goal: Goal): Promise<void> => {
+    const userId = await getCurrentUserId();
+    const { error } = await supabase
+      .from('goals')
+      .upsert({
+        user_id: userId,
+        month: goal.month,
+        revenue_goal: goal.revenueGoal,
+        new_patients_goal: goal.newPatientsGoal,
+      }, { onConflict: 'user_id,month' });
+
+    if (error) throw error;
+  },
+
+  getFinancialSummary: async () => {
+    const transactions = await financeService.getTransactions();
+    const income = transactions
+      .filter(t => t.category === 'income')
+      .reduce((acc, t) => acc + t.amount, 0);
+    const expense = transactions
+      .filter(t => t.category === 'expense')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    return {
+      revenue: income,
+      expenses: expense,
+      netProfit: income - expense
+    };
+  }
 };
