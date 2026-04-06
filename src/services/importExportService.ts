@@ -4,14 +4,14 @@ import { financeService } from './financeService';
 import type { Patient, Transaction } from '../types';
 
 export const importExportService = {
-    exportPatients: () => {
-        const data = patientService.getAll();
+    exportPatients: async () => {
+        const data = await patientService.getAll();
         const csv = Papa.unparse(data);
         downloadCSV(csv, 'pacientes.csv');
     },
 
-    exportFinance: () => {
-        const data = financeService.getTransactions();
+    exportFinance: async () => {
+        const data = await financeService.getTransactions();
         const csv = Papa.unparse(data);
         downloadCSV(csv, 'financeiro.csv');
     },
