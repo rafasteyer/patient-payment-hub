@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { Patient } from '../types';
 
 // Helper: maps DB snake_case row → Patient camelCase
