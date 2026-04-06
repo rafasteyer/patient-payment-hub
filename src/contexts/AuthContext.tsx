@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signInWithGoogle = () => authService.signInWithGoogle();
+  const signInWithGoogle = async () => { await authService.signInWithGoogle(); };
   const signOut = async () => {
     await authService.signOut();
     setUser(null);
