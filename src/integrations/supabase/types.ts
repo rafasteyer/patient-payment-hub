@@ -91,6 +91,33 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          created_at: string
+          id: string
+          month: string
+          new_patients_goal: number
+          revenue_goal: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: string
+          new_patients_goal?: number
+          revenue_goal?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: string
+          new_patients_goal?: number
+          revenue_goal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patients: {
         Row: {
           birth_date: string | null
@@ -176,6 +203,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          payment_method: string | null
+          professional: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date: string
+          description?: string
+          id?: string
+          payment_method?: string | null
+          professional?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          payment_method?: string | null
+          professional?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       waitlist: {
         Row: {
