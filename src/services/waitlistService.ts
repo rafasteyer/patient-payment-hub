@@ -8,102 +8,89 @@ export interface WaitlistItem {
   availableTimes: string;
   plan: string;
   serviceStarted: boolean;
-}
-
-async function getCurrentUserId(): Promise<string> {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) throw new Error('Usuário não autenticado');
-  return user.id;
-}
-
-function rowToItem(row: Record<string, unknown>): WaitlistItem {
-  return {
-    id: row.id as string,
-    registrationDate: row.created_at as string,
-    phoneEnd: row.phone as string ?? '',
-    age: Number(row.notes?.toString()?.match(/^AGE:(\d+)/)?.[1] ?? 0),
-    availableTimes: (() => {
-      const notes = String(row.notes ?? '');
-      const m = notes.match(/TIMES:(.+)/);
-      return m ? m[1] : '';
-    })(),
-    plan: row.health_plan as string ?? '',
-    serviceStarted: row.status === 'scheduled',
-  };
+  notes?: string;
 }
 
 export const waitlistService = {
   getAll: async (): Promise<WaitlistItem[]> => {
-    const userId = await getCurrentUserId();
     const { data, error } = await supabase
       .from('waitlist')
       .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: true });
+      .order('registration_date', { ascending: true });
 
     if (error) throw error;
-    return (data ?? []).map(rowToItem);
+    return (data ?? []).map(row => ({
+      id: row.id,
+      registrationDate: row.registration_date,
+      phoneEnd: row.phone_final,
+      age: row.age ?? 0,
+      availableTimes: row.schedules ?? '',
+      plan: row.plan_type ?? '',
+      serviceStarted: row.started_treatment ?? false,
+      notes: row.notes ?? '',
+    }));
   },
 
-  add: async (item: Omit<WaitlistItem, 'id' | 'registrationDate'>): Promise<WaitlistItem> => {
-    const userId = await getCurrentUserId();
+  add: async (item: Omit<WaitlistItem, 'id'>): Promise<WaitlistItem> => {
     const { data, error } = await supabase
       .from('waitlist')
       .insert({
-        user_id: userId,
-        name: `Paciente - Final ${item.phoneEnd}`,
-        phone: item.phoneEnd,
-        health_plan: item.plan,
-        notes: `AGE:${item.age}|TIMES:${item.availableTimes}`,
-        status: item.serviceStarted ? 'scheduled' : 'waiting',
+        registration_date: item.registrationDate,
+        phone_final: item.phoneEnd,
+        age: item.age || null,
+        schedules: item.availableTimes || null,
+        plan_type: item.plan || null,
+        started_treatment: item.serviceStarted,
+        notes: item.notes || null,
       })
       .select()
       .single();
 
     if (error) throw error;
-    return rowToItem(data);
+    return {
+      id: data.id,
+      registrationDate: data.registration_date,
+      phoneEnd: data.phone_final,
+      age: data.age ?? 0,
+      availableTimes: data.schedules ?? '',
+      plan: data.plan_type ?? '',
+      serviceStarted: data.started_treatment ?? false,
+      notes: data.notes ?? '',
+    };
   },
 
   update: async (id: string, item: Partial<WaitlistItem>): Promise<void> => {
-    const userId = await getCurrentUserId();
     const row: Record<string, unknown> = {};
-    if (item.phoneEnd !== undefined) { row.phone = item.phoneEnd; row.name = `Paciente - Final ${item.phoneEnd}`; }
-    if (item.plan !== undefined) row.health_plan = item.plan;
-    if (item.serviceStarted !== undefined) row.status = item.serviceStarted ? 'scheduled' : 'waiting';
-    if (item.age !== undefined || item.availableTimes !== undefined) {
-      // Need current to build notes
-    }
-    if (item.age !== undefined && item.availableTimes !== undefined) {
-      row.notes = `AGE:${item.age}|TIMES:${item.availableTimes}`;
-    }
+    if (item.phoneEnd !== undefined) row.phone_final = item.phoneEnd;
+    if (item.plan !== undefined) row.plan_type = item.plan;
+    if (item.serviceStarted !== undefined) row.started_treatment = item.serviceStarted;
+    if (item.age !== undefined) row.age = item.age;
+    if (item.availableTimes !== undefined) row.schedules = item.availableTimes;
+    if (item.notes !== undefined) row.notes = item.notes;
+    if (item.registrationDate !== undefined) row.registration_date = item.registrationDate;
 
     const { error } = await supabase
       .from('waitlist')
       .update(row)
-      .eq('id', id)
-      .eq('user_id', userId);
+      .eq('id', id);
 
     if (error) throw error;
   },
 
   toggleServiceStarted: async (id: string, started: boolean): Promise<void> => {
-    const userId = await getCurrentUserId();
     const { error } = await supabase
       .from('waitlist')
-      .update({ status: started ? 'scheduled' : 'waiting' })
-      .eq('id', id)
-      .eq('user_id', userId);
+      .update({ started_treatment: started })
+      .eq('id', id);
 
     if (error) throw error;
   },
 
   delete: async (id: string): Promise<void> => {
-    const userId = await getCurrentUserId();
     const { error } = await supabase
       .from('waitlist')
       .delete()
-      .eq('id', id)
-      .eq('user_id', userId);
+      .eq('id', id);
 
     if (error) throw error;
   },
