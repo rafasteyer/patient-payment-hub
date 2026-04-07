@@ -60,6 +60,7 @@ export function Waitlist() {
         await loadList();
       } else {
         const newItem = await waitlistService.add({
+          registrationDate: new Date().toISOString().split('T')[0],
           phoneEnd: formData.phoneEnd || '',
           age: Number(formData.age) || 0,
           availableTimes: formData.availableTimes || '',
@@ -79,7 +80,8 @@ export function Waitlist() {
 
   const handleImport = async (parsedData: unknown[]) => {
     const rows = parsedData as Record<string, string>[];
-    const items: Omit<WaitlistItem, 'id' | 'registrationDate'>[] = rows.map(row => ({
+    const items: Omit<WaitlistItem, 'id'>[] = rows.map(row => ({
+      registrationDate: row['Data Cadastro'] ? (() => { const p = row['Data Cadastro'].split('/'); return p.length === 3 ? `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}` : row['Data Cadastro']; })() : new Date().toISOString().split('T')[0],
       phoneEnd: row.phoneEnd || row['Final Telefone'] || '',
       age: Number(row.age || row['Idade']) || 0,
       availableTimes: row.availableTimes || row['Horários'] || row['Horarios'] || '',
