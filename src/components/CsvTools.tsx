@@ -31,6 +31,7 @@ export function CsvTools({ dataToExport, exportFilename, onImport }: CsvToolsPro
  Papa.parse(file, {
  header: true,
  skipEmptyLines: true,
+ transformHeader: (h) => h.trim(),
  complete: (results) => {
  onImport(results.data);
  e.target.value = ''; // Reset the input to allow uploading the same file again

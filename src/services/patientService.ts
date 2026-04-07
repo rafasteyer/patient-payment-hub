@@ -25,18 +25,18 @@ function rowToPatient(row: Record<string, unknown>): Patient {
 function patientToRow(p: Omit<Patient, 'id' | 'createdAt'>, userId: string) {
   return {
     user_id: userId,
-    name: p.name ?? null,
+    name: p.name || null,
     // Preserve leading zeros — always stored as text
     card_number: p.cardNumber ? String(p.cardNumber) : null,
-    cpf: p.cpf ?? null,
-    birth_date: p.birthDate ?? null,
-    mother_name: p.motherName ?? null,
-    holder: p.holder ?? null,
-    health_plan: p.healthPlan ?? null,
-    guide_expiration: p.guideExpiration ?? null,
-    amount: p.amount ?? null,
-    status: p.status ?? 'active',
-    last_session_date: p.lastSessionDate ?? null,
+    cpf: p.cpf || null,
+    birth_date: p.birthDate || null,
+    mother_name: p.motherName || null,
+    holder: p.holder || null,
+    health_plan: p.healthPlan || null,
+    guide_expiration: p.guideExpiration || null,
+    amount: p.amount || null,
+    status: p.status || 'active',
+    last_session_date: p.lastSessionDate || null,
   };
 }
 

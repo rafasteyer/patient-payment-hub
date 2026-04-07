@@ -113,15 +113,16 @@ export function Patients() {
     setImportError(null);
     const rows = parsedData as Record<string, string>[];
 
-    const parseDateInput = (val: string) => {
-      if (!val) return '';
-      if (val.includes('/')) {
-        const parts = val.split(' ')[0].split('/');
+    const parseDateInput = (val: unknown): string | null => {
+      const str = String(val ?? '').trim();
+      if (!str) return null;
+      if (str.includes('/')) {
+        const parts = str.split(' ')[0].split('/');
         if (parts.length === 3) {
           return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
         }
       }
-      return val;
+      return str;
     };
 
     // Cleans Excel/CSV formula wrappers like ="00410010009636583" → 00410010009636583
@@ -143,31 +144,43 @@ export function Patients() {
     };
 
     const patientsToImport: Omit<Patient, 'id' | 'createdAt'>[] = [];
-    rows.forEach(row => {
+    rows.forEach((row) => {
+      // Find keys using case-insensitive and normalized lookups
+      const findValue = (possibleKeys: string[]) => {
+        const actualKey = Object.keys(row).find(k => 
+          possibleKeys.some(pk => k.toLowerCase().trim() === pk.toLowerCase().trim())
+        );
+        return actualKey ? row[actualKey] : undefined;
+      };
+
+      const name = findValue(['name', 'nome', 'NOME']);
+      if (!name) return; // Skip rows without name
+
       const patient: Omit<Patient, 'id' | 'createdAt'> = {
-        name: row.name || row.Nome || row.NOME || row.nome || '',
-        cpf: cleanString(row.cpf || row.CPF || row.Cpf),
-        birthDate: parseDateInput(row.birthDate || row.Data_Nascimento || row['Data de Nascimento'] || ''),
-        status: ((row.status || row.Status_Atendimento || 'active').toLowerCase()) as 'active' | 'inactive',
-        amount: parseAmountInput(row.amount || row.Valor || row.VALOR || ''),
+        name: String(name),
+        cpf: cleanString(findValue(['cpf', 'CPF', 'Cpf'])),
+        birthDate: parseDateInput(findValue(['birthDate', 'Data_Nascimento', 'Data de Nascimento', 'Nascimento', 'Nasc'])),
+        status: (String(findValue(['status', 'Status_Atendimento']) || 'active').toLowerCase()) as 'active' | 'inactive',
+        amount: parseAmountInput(String(findValue(['amount', 'Valor', 'VALOR', 'PRECO']) || '')),
         // Card number: critical to preserve leading zeros
         cardNumber: cleanCardNumber(
-          row.cardNumber || row.Carteirinha || row.CARTEIRINHA ||
-          row['N DA CARTEIRINHA'] || row['N da Carteirinha'] ||
-          row['Nº Carteirinha'] || row['Nº da carteirinha'] ||
-          row['Nº Carteira'] || row['N da Carteira']
+          findValue([
+            'cardNumber', 'Carteirinha', 'CARTEIRINHA', 
+            'N DA CARTEIRINHA', 'N da Carteirinha', 
+            'Nº Carteirinha', 'Nº da carteirinha', 
+            'Nº Carteira', 'N da Carteira', 'Nº da Carteira'
+          ])
         ),
-        motherName: row.motherName || row.Nome_Mae || row['Nome da Mãe'] || '',
-        holder: row.holder || row.Titular || row.TITULAR || '',
-        healthPlan: row.healthPlan || row.Plano || row.PLANO || '',
+        motherName: String(findValue(['motherName', 'Nome_Mae', 'Nome da Mãe', 'Mãe']) || ''),
+        holder: String(findValue(['holder', 'Titular', 'TITULAR']) || ''),
+        healthPlan: String(findValue(['healthPlan', 'Plano', 'PLANO', 'Convênio']) || ''),
         guideExpiration: parseDateInput(
-          row.guideExpiration || row.Vencimento_Guia || row['Data de vencimento da guia'] || ''
+          findValue(['guideExpiration', 'Vencimento_Guia', 'Data de vencimento da guia', 'Vencimento', 'Vencimento Guia'])
         ),
         lastSessionDate: null,
       };
-      if (patient.name) {
-        patientsToImport.push(patient);
-      }
+      
+      patientsToImport.push(patient);
     });
 
     if (patientsToImport.length === 0) {
@@ -179,9 +192,11 @@ export function Patients() {
       const count = await patientService.addMany(patientsToImport);
       await loadPatients();
       alert(`${count} pacientes importados com sucesso!`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erro ao importar pacientes:', err);
-      setImportError('Erro ao importar. Verifique o arquivo e tente novamente.');
+      // More specific error message
+      const errorMsg = err.message || (err.error?.message) || 'Erro desconhecido';
+      setImportError(`Erro ao importar: ${errorMsg}. Verifique os formatos de data e colunas.`);
     }
   };
 
