@@ -17,33 +17,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('[AuthContext] initializing...');
+    let isMounted = true;
+    let authResolved = false;
 
-    // Detect if we are in an OAuth callback to handle loading state correctly
-    const isCallback = window.location.hash.includes('access_token') || 
-                       window.location.hash.includes('error') ||
-                       window.location.search.includes('code=');
+    const isOAuthCallback =
+      window.location.hash.includes('access_token') ||
+      window.location.hash.includes('error') ||
+      window.location.search.includes('code=');
 
-    // Check initial session
-    authService.getUser().then(u => {
-      console.log('[AuthContext] initial user:', u?.email);
-      if (u) {
-        setUser(u);
-        setLoading(false);
-      } else if (!isCallback) {
-        // Only stop loading if we're not waiting for an OAuth callback
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth state changes (handles OAuth callback)
-    const { data: { subscription } } = authService.onAuthStateChange((u, event) => {
-      console.log('[AuthContext] event:', event, 'user:', u?.email);
-      setUser(u);
+    const applyAuthState = (nextUser: User | null) => {
+      if (!isMounted) return;
+      authResolved = true;
+      setUser(nextUser);
       setLoading(false);
+    };
+
+    const { data: { subscription } } = authService.onAuthStateChange((nextUser, event) => {
+      if (isOAuthCallback && event === 'INITIAL_SESSION' && !nextUser) {
+        return;
+      }
+
+      applyAuthState(nextUser);
     });
 
-    return () => subscription.unsubscribe();
+    const restoreSession = async () => {
+      try {
+        const attempts = isOAuthCallback ? 10 : 1;
+
+        for (let attempt = 0; attempt < attempts; attempt += 1) {
+          const session = await authService.getSession();
+          const nextUser = session?.user ?? null;
+
+          if (authResolved) return;
+
+          if (nextUser || !isOAuthCallback || attempt === attempts - 1) {
+            applyAuthState(nextUser);
+            return;
+          }
+
+          await new Promise((resolve) => window.setTimeout(resolve, 300));
+        }
+      } catch (error) {
+        console.error('[AuthContext] failed to restore session:', error);
+        if (!authResolved) {
+          applyAuthState(null);
+        }
+      }
+    };
+
+    void restoreSession();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => { await authService.signInWithGoogle(); };
