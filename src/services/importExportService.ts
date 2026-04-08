@@ -21,7 +21,7 @@ export const importExportService = {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-                const data = results.data as /* eslint-disable-next-line @typescript-eslint/no-explicit-any */ any[];
+                const data = results.data as any[];
                 if (data.length === 0) return onError('Arquivo vazio ou inválido');
 
                 // Heuristic detection based on columns

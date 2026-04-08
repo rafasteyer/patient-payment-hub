@@ -9,9 +9,7 @@ import type { Goal } from '../types';
 import clsx from 'clsx';
 
 export function Dashboard() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [transactions, setTransactions] = useState<any[]>([]);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [patients, setPatients] = useState<any[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [period, setPeriod] = useState<string>('monthly');
@@ -156,7 +154,6 @@ export function Dashboard() {
                 <XAxis dataKey="name" tick={{ fill: 'var(--color-text-muted)', fontSize: 13 }} />
                 <YAxis tick={{ fill: 'var(--color-text-muted)', fontSize: 12 }} />
                 <Tooltip
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   formatter={(value: any) => value?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   contentStyle={{ borderRadius: '10px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)' }}
                 />
@@ -170,7 +167,6 @@ export function Dashboard() {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function KPICard({ title, value, icon: Icon, subValue, trend, trendLabel, highlight }: any) {
   return (
     <div className="card p-5 flex flex-col justify-between min-h-[120px] hover:-translate-y-0.5 transition-transform duration-200">
