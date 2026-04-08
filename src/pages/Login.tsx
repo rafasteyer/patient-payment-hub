@@ -11,8 +11,8 @@ export function Login() {
     setError(null);
     try {
       await signInWithGoogle();
-      // O redirect para o Google acontece automaticamente.
-      // O usuário volta para /pacientes após autenticar.
+      // If we're still here (no redirect), stop loading — auth state change will handle redirect
+      setIsLoading(false);
     } catch (err: unknown) {
       setError('Erro ao conectar com Google. Tente novamente.');
       console.error(err);
