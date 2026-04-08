@@ -20,6 +20,8 @@ export function Login() {
     }
   };
 
+  const isConfigError = !import.meta.env.VITE_SUPABASE_URL || (!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY && !import.meta.env.VITE_SUPABASE_ANON_KEY);
+
   return (
     <div className="min-h-screen bg-industrial-bg flex flex-col justify-center items-center p-4 relative overflow-hidden text-industrial-text">
       {/* Background elements abstract */}
@@ -33,6 +35,13 @@ export function Login() {
         </div>
 
         <div className="space-y-4">
+          {isConfigError && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg flex flex-col gap-1">
+              <p className="font-bold">⚠️ Configuração Pendente</p>
+              <p>As chaves do Supabase não foram encontradas. Verifique as "Project Secrets" no Lovable.</p>
+            </div>
+          )}
+
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm px-4 py-3 rounded-lg">
               {error}
@@ -41,7 +50,7 @@ export function Login() {
 
           <button
             onClick={handleGoogleLogin}
-            disabled={isLoading}
+            disabled={isLoading || isConfigError}
             className="w-full flex items-center justify-center gap-3 bg-industrial-surface hover:bg-gray-50 dark:hover:bg-gray-800 text-industrial-text font-medium py-3 px-4 rounded-xl border border-industrial-border transition-all shadow-sm active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isLoading ? (
