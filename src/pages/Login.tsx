@@ -20,7 +20,7 @@ export function Login() {
     }
   };
 
-  const isConfigError = !import.meta.env.VITE_SUPABASE_URL || (!import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY && !import.meta.env.VITE_SUPABASE_ANON_KEY);
+  const isConfigError = false;
 
   return (
     <div className="min-h-screen bg-industrial-bg flex flex-col justify-center items-center p-4 relative overflow-hidden text-industrial-text">
