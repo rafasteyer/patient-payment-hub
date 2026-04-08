@@ -60,7 +60,6 @@ export function Waitlist() {
         await loadList();
       } else {
         const newItem = await waitlistService.add({
-          registrationDate: new Date().toISOString().split('T')[0],
           phoneEnd: formData.phoneEnd || '',
           age: Number(formData.age) || 0,
           availableTimes: formData.availableTimes || '',

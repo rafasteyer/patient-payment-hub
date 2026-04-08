@@ -23,11 +23,11 @@ export const taskService = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data ?? []).map(row => ({
-      id: row.id,
-      date: row.created_at,
-      description: row.title,
-      status: row.completed ? 'completed' as const : 'pending' as const,
+    return (data ?? []).map((row: Record<string, unknown>) => ({
+      id: row.id as string,
+      date: row.created_at as string,
+      description: row.title as string,
+      status: (row.completed ? 'completed' : 'pending') as 'completed' | 'pending',
     }));
   },
 
